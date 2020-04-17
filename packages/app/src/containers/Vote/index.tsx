@@ -1,11 +1,18 @@
 import React, {useState} from 'react';
 import classnames from 'classnames';
 import styled from 'styled-components';
+import firebase from '../../firebase'
 
 interface Option {
   id: number;
   name: string;
 }
+
+const defaultDb = firebase.database()
+
+
+
+
 
 const items = [
   'Klaus',
@@ -26,6 +33,11 @@ export default () => {
     {name: 'A Cure for Wellness', id: 5},
   ]);
   const [preferences, setPreferences] = useState<number[]>([]);
+
+  const firebaseTestWrite = () => {
+    const test = defaultDb.ref('test')
+    test.push('hi')
+  }
 
   const toggle = (option: Option) => {
     if (preferences.includes(option.id)) {
@@ -87,7 +99,7 @@ export default () => {
         })}
       </List>
 
-      <Button>Vote!</Button>
+      <Button onClick={() => firebaseTestWrite()}>Vote!</Button>
     </Wrap>
   );
 };
