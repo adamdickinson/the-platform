@@ -15,6 +15,8 @@ const items = [
   'A Cure for Wellness',
 ];
 
+const range = (length: number) => [...Array(length).keys()];
+
 export default () => {
   const [options, setOptions] = useState<Option[]>([
     {name: 'Klaus', id: 1},
@@ -33,6 +35,22 @@ export default () => {
     }
   };
 
+  const movePreference = (option: Option, nextPosition: number) => {
+    const nextIndex = nextPosition - 1;
+    const currentIndex = preferences.indexOf(option.id);
+
+    let newPreferences = [...preferences];
+
+    // Blank out existing
+    if (currentIndex > -1) {
+      newPreferences.splice(currentIndex, 1, -1);
+    }
+
+    newPreferences.splice(nextIndex, 0, option.id); // Drop in new preference
+    newPreferences = newPreferences.filter((id: number) => id > -1); // Tidy up
+    setPreferences(newPreferences);
+  };
+
   const sorted = options.sort(
     (a, b) =>
       (preferences.includes(a.id) ? preferences.indexOf(a.id) : Infinity) -
@@ -44,15 +62,29 @@ export default () => {
       <h1>Vote for your faves</h1>
       <p>Click the options in order of preference (highest first)</p>
       <List>
-        {sorted.map(option => (
-          <Item
-            className={classnames({active: preferences.includes(option.id)})}
-            onClick={() => toggle(option)}
-            key={option.id}>
-            <Box>{preferences.indexOf(option.id) + 1 || ''}</Box>
-            {option.name}
-          </Item>
-        ))}
+        {sorted.map(option => {
+          const isActive = preferences.includes(option.id);
+          const index = preferences.indexOf(option.id);
+          return (
+            <Item
+              className={classnames({active: isActive})}
+              onClick={index === -1 ? () => toggle(option) : undefined}
+              key={option.id}>
+              <Box
+                value={index + 1}
+                onClick={event => event.stopPropagation()}
+                onChange={event =>
+                  movePreference(option, parseInt(event.target.value, 10))
+                }>
+                <option />
+                {range(options.length).map(i => (
+                  <option key={i}>{i + 1}</option>
+                ))}
+              </Box>
+              {option.name}
+            </Item>
+          );
+        })}
       </List>
 
       <Button>Vote!</Button>
@@ -60,15 +92,14 @@ export default () => {
   );
 };
 
-const Box = styled.i`
+const Box = styled.select`
   align-items: center;
   border: 2px solid #b3e5fc;
   display: flex;
-  height: 1rem;
+  font-size: 0.75rem;
+  padding: 0.125rem;
   justify-content: center;
   margin-right: 1rem;
-  padding: 0.25rem;
-  width: 1rem;
 `;
 
 const Button = styled.button`
