@@ -1,3 +1,6 @@
+import {gql} from 'apollo-boost';
+import {useMutation, useQuery} from '@apollo/react-hooks';
+import {useParams} from 'react-router-dom';
 import React, {useState} from 'react';
 import classnames from 'classnames';
 import styled from 'styled-components';
@@ -17,15 +20,52 @@ const items = [
 
 const range = (length: number) => [...Array(length).keys()];
 
+const GET_POLL = gql`
+  query GetPoll($id: ID!) {
+    poll(id: $id) {
+      options {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const VOTE = gql`
+  mutation Vote($pollId: ID!, $preferences: [ID!]!) {
+    vote(pollId: $pollId, preferences: $preferences) {
+      createdAt
+    }
+  }
+`;
+
+interface PollQueryData {
+  poll: {
+    name: string;
+    options: Option[];
+  };
+}
+
+interface PollQueryVars {
+  id: string;
+  userId: string;
+}
+
 export default () => {
-  const [options, setOptions] = useState<Option[]>([
-    {name: 'Klaus', id: 1},
-    {name: 'Baabhubali', id: 2},
-    {name: 'Annabelle Comes Home', id: 3},
-    {name: 'Roma', id: 4},
-    {name: 'A Cure for Wellness', id: 5},
-  ]);
+  const {code} = useParams();
+  const [pollId, userId] = atob(code).split(':');
   const [preferences, setPreferences] = useState<number[]>([]);
+
+  const pollQuery = useQuery<PollQueryData, PollQueryVars>(GET_POLL, {
+    variables: {id: pollId, userId},
+  });
+
+  const [vote, voteMutation] = useMutation(VOTE, {
+    variables: {pollId, preferences, userId},
+  });
+
+  const options: Option[] =
+    pollQuery.data?.poll.options.map(({id, name}) => ({id, name})) || [];
 
   const toggle = (option: Option) => {
     if (preferences.includes(option.id)) {
@@ -41,13 +81,12 @@ export default () => {
 
     let newPreferences = [...preferences];
 
-    // Blank out existing
+    // Remove existing
     if (currentIndex > -1) {
-      newPreferences.splice(currentIndex, 1, -1);
+      newPreferences.splice(currentIndex, 1);
     }
 
     newPreferences.splice(nextIndex, 0, option.id); // Drop in new preference
-    newPreferences = newPreferences.filter((id: number) => id > -1); // Tidy up
     setPreferences(newPreferences);
   };
 
@@ -60,7 +99,10 @@ export default () => {
   return (
     <Wrap>
       <h1>Vote for your faves</h1>
-      <p>Click the options in order of preference (highest first)</p>
+      {!!voteMutation?.data && <p>Your vote has been cast. You can defs vote again, but it will just update your previous one.</p>}
+      {!voteMutation?.data && (
+        <p>Click the options in order of preference (highest first)</p>
+      )}
       <List>
         {sorted.map(option => {
           const isActive = preferences.includes(option.id);
@@ -87,7 +129,7 @@ export default () => {
         })}
       </List>
 
-      <Button>Vote!</Button>
+      <Button onClick={() => vote()}>Vote!</Button>
     </Wrap>
   );
 };

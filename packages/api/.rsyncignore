@@ -1,0 +1,8 @@
+node_modules/
+yarn-error.log
+.git
+.gitignore
+data.json
+bili.config
+src/
+tsconfig.json
