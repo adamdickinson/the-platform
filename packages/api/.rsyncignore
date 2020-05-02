@@ -2,6 +2,8 @@ node_modules/
 yarn-error.log
 .git
 .gitignore
+nohup.out
+scripts/.pid.lock
 data.json
 bili.config
 src/

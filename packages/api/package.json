@@ -7,8 +7,8 @@
     "build": "bili",
     "start": "ts-node src/index.ts",
     "watch": "nodemon",
-    "serve": "node dist/index.js",
-    "deploy": "rsync -avz --exclude-from=.rsyncignore * kreuzberg:api"
+    "serve": "./scripts/start.sh",
+    "deploy": "rsync -avz --exclude-from=.rsyncignore * kreuzberg:api && echo 'cd api; yarn serve' | ssh -t kreuzberg"
   },
   "dependencies": {
     "apollo-server": "^2.12.0",

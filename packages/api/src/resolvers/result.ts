@@ -32,8 +32,26 @@ export const resolvers = {
       const polls: Poll[] = store.get('polls') || [];
       return polls.find(({id}) => id === result.pollId);
     },
+  },
 
-    winners: (result: Result, _: any, context: {user: User}) => {
+  Round: {
+    losers: (round: Round) => {
+      const polls: Poll[] = store.get('polls') || [];
+      const poll = polls.find(({id}) => id === round.pollId);
+      const options = poll.options;
+      return options.filter(option => round.loserIds.includes(option.id));
+    },
+
+    votes: (round: Round) => {
+      const polls: Poll[] = store.get('polls') || [];
+      const poll = polls.find(({id}) => id === round.pollId);
+      const options = poll.options;
+      return round.voteIds.map(id => options.find(option => option.id === id));
+    },
+  },
+
+  Query: {
+    result: (_: any, params: {pollId: string}, context: {user: User}) => {
       if (context.user.id !== 'adam') {
         return [];
       }
@@ -59,6 +77,7 @@ export const resolvers = {
       const newResult: Result = {
         pollId: result.pollId,
         rounds: [],
+        winners: []
       };
 
       while (true) {
@@ -108,42 +127,19 @@ export const resolvers = {
         // Find winner
         for (const id of Object.keys(tally)) {
           if (tally[id] > votesRequired) {
-            const winner = options.find(option => option.id === id);
-            store.set('results', [...results, newResult]);
-            return [winner];
+            newResult.winners = [options.find(option => option.id === id)];
+            return newResult;
           }
         }
 
         if (!Object.keys(tally).filter(id => tally[id]).length) {
           store.set('results', [...results, newResult]);
-          return activeOptions.map(id =>
+          newResult.winners = activeOptions.map(id =>
             options.find(option => option.id === id),
           );
+          return newResult;
         }
       }
-    },
-  },
-
-  Round: {
-    losers: (round: Round) => {
-      const polls: Poll[] = store.get('polls') || [];
-      const poll = polls.find(({id}) => id === round.pollId);
-      const options = poll.options;
-      return options.filter(option => round.loserIds.includes(option.id));
-    },
-
-    votes: (round: Round) => {
-      const polls: Poll[] = store.get('polls') || [];
-      const poll = polls.find(({id}) => id === round.pollId);
-      const options = poll.options;
-      return round.voteIds.map(id => options.find(option => option.id === id));
-    },
-  },
-
-  Query: {
-    result: (_: any, params: {pollId: string}) => {
-      const results: Result[] = store.get('results') || [];
-      return results.find(({pollId}) => pollId === params.pollId);
     },
   },
 };
