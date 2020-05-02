@@ -10,14 +10,6 @@ interface Option {
   name: string;
 }
 
-const items = [
-  'Klaus',
-  'Baabhubali',
-  'Annabelle Comes Home',
-  'Roma',
-  'A Cure for Wellness',
-];
-
 const range = (length: number) => [...Array(length).keys()];
 
 const GET_POLL = gql`

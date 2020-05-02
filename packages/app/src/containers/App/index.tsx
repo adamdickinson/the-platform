@@ -4,10 +4,11 @@ import ApolloClient from 'apollo-boost';
 import React from 'react';
 
 import BaseStyle from '../../styles/BaseStyle';
+import Results from '../Results';
 import Vote from '../Vote';
 
 const client = new ApolloClient({
-  uri: 'http://localhost:4000/graphql',
+  uri: `${window.location.protocol}//${window.location.hostname}:4000/graphql`,
   request: operation => {
     const {userId} = operation.variables;
     delete operation.variables.userId;
@@ -25,6 +26,7 @@ export default () => {
       <BaseStyle />
       <Router>
         <Route path="/poll/:code" component={Vote} />
+        <Route path="/results/:pollId" component={Results} />
       </Router>
     </ApolloProvider>
   );

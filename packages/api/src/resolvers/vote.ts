@@ -1,5 +1,3 @@
-import {Result} from '../types/result';
-import {Round} from '../types/round';
 import {User} from '../types/user';
 import {Vote} from '../types/vote';
 import {createStore} from '../helpers/store';
@@ -18,7 +16,6 @@ export const typeDefs = `
 
   extend type Query {
     votes: [Vote!]!
-    winners(pollId: ID!): [Option!]!
   }
 
   extend type Mutation {
@@ -94,96 +91,5 @@ export const resolvers = {
   Query: {
     votes: (_: any, __: any, context: {user: User}) =>
       context.user.id === 'adam' ? store.get('votes') || [] : [],
-
-    winners: (_: any, params: {pollId: string}, context: {user: User}) => {
-      if (context.user.id !== 'adam') {
-        return [];
-      }
-      const poll = store.get('polls').find(({id}) => id === params.pollId);
-      const options = poll.options;
-
-      let results: Result[] = store.get('results') || [];
-      results = results.filter(result => result.pollId !== params.pollId);
-
-      const votes: Vote[] = store
-        .get('votes')
-        .filter(vote => vote.pollId === params.pollId);
-      const tally: Record<string, number> = {};
-      let votePreferences = votes.map(({preferences}) => [...preferences]);
-
-      const losers: string[] = [];
-      options.forEach(({id}) => {
-        tally[id] = 0;
-      });
-
-      const votesCast = votePreferences.length;
-      const votesRequired = votesCast / 2;
-      const result: Result = {
-        pollId: params.pollId,
-        rounds: [],
-      };
-
-      while (true) {
-        // Clear tally
-        Object.keys(tally).forEach(id => {
-          tally[id] = 0;
-        });
-
-        const round: Round = {
-          pollId: params.pollId,
-          voteIds: [],
-          minVotes: 0,
-          votesRequired,
-          loserIds: [...losers],
-        };
-
-        result.rounds.push(round);
-
-
-        // Count top non-excluded preferences
-        votePreferences.forEach(preferences => {
-          if (preferences.length) {
-            const nextPreference = preferences.find(
-              ({id}) => !losers.includes(id),
-            );
-            round.voteIds.push(nextPreference.id);
-            tally[nextPreference.id]++;
-          }
-        });
-
-        const activeOptions = Object.keys(tally).filter(
-          id => !losers.includes(id),
-        );
-
-        // Get minimum votes for any option
-        const minVotes = Object.values(tally).reduce(
-          (min, count) => Math.min(min, count),
-          Infinity,
-        );
-        round.minVotes = minVotes;
-
-        // Determine losers
-        losers.push(...Object.keys(tally).filter(id => tally[id] === minVotes));
-        losers.forEach(id => {
-          delete tally[id];
-        });
-
-        // Find winner
-        for (const id of Object.keys(tally)) {
-          if (tally[id] > votesRequired) {
-            const winner = options.find(option => option.id === id);
-            store.set('results', [...results, result]);
-            return [winner];
-          }
-        }
-
-        if (!Object.keys(tally).filter(id => tally[id]).length) {
-          store.set('results', [...results, result]);
-          return activeOptions.map(id =>
-            options.find(option => option.id === id),
-          );
-        }
-      }
-    },
   },
 };

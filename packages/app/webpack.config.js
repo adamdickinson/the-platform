@@ -36,6 +36,13 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.(jpg|png)$/,
+        exclude: /node_modules/,
+        use: [
+          { loader: 'file-loader' }
+        ]
+      },
+      {
         test: /\.ts(x?)$/,
         exclude: /node_modules/,
         use: [
