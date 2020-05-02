@@ -3,6 +3,7 @@ import {v1 as uuid} from 'uuid';
 import {Option} from '../types/option';
 import {Poll} from '../types/poll';
 import {User} from '../types/user';
+import { Vote } from '../types/vote';
 import {createStore} from '../helpers/store';
 
 const POLL_URL = 'http://vote.adamdickinson.com.au/poll/';
@@ -34,6 +35,7 @@ export const typeDefs = `
 
   extend type Mutation {
     createPoll(name: String!, options: [String!]!): Poll!
+    deletePoll(pollId: ID!): Poll!
     updatePoll(pollId: ID!, name: String, options: [String!]): Poll!
   }
 `;
@@ -61,6 +63,19 @@ export const resolvers = {
       store.set('polls', polls);
 
       return poll;
+    },
+
+    deletePoll: (_: any, params: {pollId: string}, context: {user: User}) => {
+      if (context.user.id === 'adam') {
+        const polls: Poll[] = store.get('polls') || [];
+        const poll = polls.find(({ id }) => id === params.pollId);
+        store.set('polls', polls.filter(({ id }) => id !== params.pollId));
+
+        const votes: Vote[] = store.get('votes') || [];
+        store.set('votes', votes.filter(({ pollId }) => pollId !== params.pollId));
+
+        return poll;
+      }
     },
 
     updatePoll: (

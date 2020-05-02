@@ -55,15 +55,14 @@ export const resolvers = {
       if (context.user.id !== 'adam') {
         return [];
       }
-      const poll = store.get('polls').find(({id}) => id === result.pollId);
-      const options = poll.options;
 
-      let results: Result[] = store.get('results') || [];
-      results = results.filter(result => result.pollId !== result.pollId);
+      const poll = store.get('polls').find(({id}) => id === params.pollId);
+      const options = poll.options;
 
       const votes: Vote[] = store
         .get('votes')
-        .filter(vote => vote.pollId === result.pollId);
+        .filter(vote => vote.pollId === params.pollId);
+
       const tally: Record<string, number> = {};
       let votePreferences = votes.map(({preferences}) => [...preferences]);
 
@@ -75,7 +74,7 @@ export const resolvers = {
       const votesCast = votePreferences.length;
       const votesRequired = votesCast / 2;
       const newResult: Result = {
-        pollId: result.pollId,
+        pollId: params.pollId,
         rounds: [],
         winners: []
       };
@@ -87,7 +86,7 @@ export const resolvers = {
         });
 
         const round: Round = {
-          pollId: result.pollId,
+          pollId: params.pollId,
           voteIds: [],
           minVotes: 0,
           votesRequired,
@@ -133,7 +132,6 @@ export const resolvers = {
         }
 
         if (!Object.keys(tally).filter(id => tally[id]).length) {
-          store.set('results', [...results, newResult]);
           newResult.winners = activeOptions.map(id =>
             options.find(option => option.id === id),
           );

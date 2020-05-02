@@ -9,6 +9,9 @@ export default createGlobalStyle`
     --disabled: #4C566A;
     --tint-1: #3B4252;
     --tint-2: #434C5E;
+    --primary: #88c0d0;
+    --secondary: #81a1c1;
+    --tertiary: #5e81ac;
   }
 
   html, body {

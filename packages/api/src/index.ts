@@ -16,9 +16,7 @@ const server = new ApolloServer({
     const code = token.substr('Bearer '.length);
     const users = store.get('users') || [];
     const user =
-      code === 'adam'
-        ? {id: 'adam', name: 'Admin'}
-        : users.find(({id}) => id === code);
+      code === 'adam' ? {id: 'adam'} : users.find(({id}) => id === code);
     if (!user) {
       throw new Error('Invalid user');
     }

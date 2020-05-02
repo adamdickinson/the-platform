@@ -11,7 +11,6 @@ export const typeDefs = `
   type User {
     id: ID!
     code: String!
-    name: String!
   }
 
   extend type Query {
@@ -19,19 +18,33 @@ export const typeDefs = `
   }
 
   extend type Mutation {
-    addUser(name: String): User!
+    addUser: User!
+    deleteUser(id: ID!): User!
   }
 `;
 
 export const resolvers = {
   Mutation: {
-    addUser: (_: any, params: {name: string}) => {
+    addUser: () => {
       const users = store.get('users') || [];
       const user: User = {
         id: uuid(),
-        name: params.name,
       };
       store.set('users', [...users, user]);
+      return user;
+    },
+
+    deleteUser: (_: any, params: {id: string}, context: {user: User}) => {
+      if (context.user.id !== 'adam') {
+        return;
+      }
+
+      const users = store.get('users') || [];
+      const user = users.find(({id}) => id === params.id);
+      store.set(
+        'users',
+        users.filter(({id}) => id !== params.id),
+      );
       return user;
     },
   },

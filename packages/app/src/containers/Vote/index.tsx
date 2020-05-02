@@ -88,47 +88,54 @@ export default () => {
       (preferences.includes(b.id) ? preferences.indexOf(b.id) : Infinity),
   );
 
+  const voteCast = !!voteMutation?.data;
+
   return (
     <Wrap>
-      <h1>Vote for your faves</h1>
-      {!!voteMutation?.data && <p>Your vote has been cast. You can defs vote again, but it will just update your previous one.</p>}
-      {!voteMutation?.data && (
-        <p>Click the options in order of preference (highest first)</p>
+      <h1>{voteCast ? 'Your vote has been cast' : 'Vote for your faves'}</h1>
+      {voteCast && (
+        <p>If you'd like to re-cast your vote, just refresh the page.</p>
       )}
-      <List>
-        {sorted.map(option => {
-          const isActive = preferences.includes(option.id);
-          const index = preferences.indexOf(option.id);
-          return (
-            <Item
-              className={classnames({active: isActive})}
-              onClick={index === -1 ? () => toggle(option) : undefined}
-              key={option.id}>
-              <Box
-                value={index + 1}
-                onClick={event => event.stopPropagation()}
-                onChange={event =>
-                  movePreference(option, parseInt(event.target.value, 10))
-                }>
-                <option />
-                {range(options.length).map(i => (
-                  <option key={i}>{i + 1}</option>
-                ))}
-              </Box>
-              {option.name}
-            </Item>
-          );
-        })}
-      </List>
+      {!voteCast && (
+        <>
+          <p>Click the options in order of preference (highest first)</p>
+          <List>
+            {sorted.map(option => {
+              const isActive = preferences.includes(option.id);
+              const index = preferences.indexOf(option.id);
+              return (
+                <Item
+                  className={classnames({active: isActive})}
+                  onClick={index === -1 ? () => toggle(option) : undefined}
+                  key={option.id}>
+                  <Box
+                    value={index + 1}
+                    onClick={event => event.stopPropagation()}
+                    onChange={event =>
+                      movePreference(option, parseInt(event.target.value, 10))
+                    }>
+                    <option />
+                    {range(options.length).map(i => (
+                      <option key={i}>{i + 1}</option>
+                    ))}
+                  </Box>
+                  {option.name}
+                </Item>
+              );
+            })}
+          </List>
 
-      <Button onClick={() => vote()}>Vote!</Button>
+          <Button onClick={() => vote()}>Vote!</Button>
+        </>
+      )}
     </Wrap>
   );
 };
 
 const Box = styled.select`
   align-items: center;
-  border: 2px solid #b3e5fc;
+  border: none;
+  background: none;
   display: flex;
   font-size: 0.75rem;
   padding: 0.125rem;
@@ -137,9 +144,9 @@ const Box = styled.select`
 `;
 
 const Button = styled.button`
-  background: #01579b;
+  background: var(--primary);
   border: none;
-  color: #fff;
+  color: var(--background);
   cursor: pointer;
   font: inherit;
   font-size: 1.125rem;
@@ -149,18 +156,22 @@ const Button = styled.button`
 `;
 
 const Item = styled.li`
-  background: #e1f5fe;
+  background: var(--tint-1);
   padding: 1rem 1.25rem;
   margin: 0.25rem 0;
   border-radius: 0.5rem;
-  border: 1px solid #e1f5fe;
   cursor: pointer;
   display: flex;
   align-items: center;
 
+  select {
+    background: var(--tint-2);
+    color: inherit;
+    font: inherit;
+  }
+
   &.active {
-    background: #ffffff;
-    border: 1px solid #b3e5fc;
+    background: var(--tint-2);
     font-weight: bold;
   }
 `;
